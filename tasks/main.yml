@@ -17,7 +17,7 @@
     mode: 0755
 
 - name: generate the private key
-  command: "openssl genrsa -out \"{{ certificate_directory + '/' + key_filename }}\" {{ key_size }}"
+  command: 'openssl genrsa -out "{{ certificate_directory + ''/'' + key_filename }}" {{ key_size }}'
   args:
     creates: "{{ certificate_directory + '/' + key_filename }}"
 
@@ -43,9 +43,9 @@
 
 - name: generate the CSR
   command: |
-    openssl req -new -sha256 -subj "/CN={{ certificate_common_name }}" 
-    -config "{{ certificate_directory }}/openssl-request.conf"  
-    -key "{{ certificate_directory + '/' + key_filename }}" 
+    openssl req -new -sha256 -subj "/CN={{ certificate_wildcard_common_name }}"
+    -config "{{ certificate_directory }}/openssl-request.conf"
+    -key "{{ certificate_directory + '/' + key_filename }}"
     -out "{{ certificate_directory + '/' + csr_filename }}"
   args:
     creates: "{{ certificate_directory + '/' + csr_filename }}"
@@ -70,7 +70,7 @@
     state: directory
 
 - name: generate the Let's Encrypt account key
-  command: "openssl genrsa -out \"{{ letsencrypt_key_directory + '/' + letsencrypt_key_filename }}\" {{ letsencrypt_key_size }}"
+  command: 'openssl genrsa -out "{{ letsencrypt_key_directory + ''/'' + letsencrypt_key_filename }}" {{ letsencrypt_key_size }}'
   args:
     creates: "{{ letsencrypt_key_directory + '/' + letsencrypt_key_filename }}"
 
@@ -89,16 +89,17 @@
     dest: "{{ certificate_directory + '/' + crt_filename }}"
     account_email: "{{ letsencrypt_email }}"
     remaining_days: "{{ certificate_remaining_days }}"
+    acme_version: 2
   register: letsencrypt_challenge
   tags:
     - web-api
 
-- name: Create DNS Record  
+- name: Create DNS Record
   cloudflare_dns:
     domain: "{{ cloudflare_domain }}"
-    record: "_acme-challenge.{{ item.key }}"
+    record: "{{ item.value['dns-01']['record'] }}"
     type: TXT
-    value: "\"{{ item.value['dns-01']['resource_value'] }}\""
+    value: '"{{ item.value[''dns-01''][''resource_value''] }}"'
     state: present
     solo: true
     account_email: "{{ cloudflare_email }}"
@@ -117,6 +118,7 @@
     dest: "{{ certificate_directory + '/' + crt_filename }}"
     account_email: "{{ letsencrypt_email }}"
     data: "{{ letsencrypt_challenge }}"
+    acme_version: 2
   register: letsencrypt_validation
   retries: 3
   delay: 10
@@ -125,12 +127,12 @@
   tags:
     - web-api
 
-- name: Delete DNS Record  
+- name: Delete DNS Record
   cloudflare_dns:
     domain: "{{ cloudflare_domain }}"
-    record: "_acme-challenge.{{ item.key }}"
+    record: "{{ item.value['dns-01']['record'] }}"
     type: TXT
-    value: "\"{{ item.value['dns-01']['resource_value'] }}\""
+    value: '"{{ item.value[''dns-01''][''resource_value''] }}"'
     state: absent
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_api_key }}"
@@ -174,9 +176,9 @@
     path: "{{ item.full_path | dirname }}"
     state: directory
   with_items:
-    - { full_path: "{{ copy_csr_full_path }}"}
-    - { full_path: "{{ copy_crt_full_path }}"}
-    - { full_path: "{{ copy_key_full_path }}"}
+    - { full_path: "{{ copy_csr_full_path }}" }
+    - { full_path: "{{ copy_crt_full_path }}" }
+    - { full_path: "{{ copy_key_full_path }}" }
   when: item.full_path != ""
 
 - name: Copy/Rename nominated files
@@ -185,11 +187,26 @@
     dest: "{{ item.full_path }}"
     remote_src: yes
   with_items:
-    - { full_path: "{{ copy_csr_full_path }}", source_filename: "{{ csr_filename }}"}
-    - { full_path: "{{ copy_crt_full_path }}", source_filename: "{{ crt_filename }}"}
-    - { full_path: "{{ copy_key_full_path }}", source_filename: "{{ key_filename }}"}
-    - { full_path: "{{ copy_intermediate_full_path }}", source_filename: "{{ intermediate_filename }}"}
-    - { full_path: "{{ copy_fullchain_full_path }}", source_filename: "{{ fullchain_filename }}"}
+    - {
+        full_path: "{{ copy_csr_full_path }}",
+        source_filename: "{{ csr_filename }}",
+      }
+    - {
+        full_path: "{{ copy_crt_full_path }}",
+        source_filename: "{{ crt_filename }}",
+      }
+    - {
+        full_path: "{{ copy_key_full_path }}",
+        source_filename: "{{ key_filename }}",
+      }
+    - {
+        full_path: "{{ copy_intermediate_full_path }}",
+        source_filename: "{{ intermediate_filename }}",
+      }
+    - {
+        full_path: "{{ copy_fullchain_full_path }}",
+        source_filename: "{{ fullchain_filename }}",
+      }
   when: item.full_path != ""
 
 - name: Remove generated files if 'cleanup_all'
@@ -197,11 +214,11 @@
     path: "{{ item.full_path }}"
     state: absent
   with_items:
-    - { full_path: "{{ certificate_directory + '/' + csr_filename }}"}
-    - { full_path: "{{ certificate_directory + '/' + crt_filename }}"}
-    - { full_path: "{{ certificate_directory + '/' + key_filename }}"}
-    - { full_path: "{{ certificate_directory + '/' + intermediate_filename }}"}
-    - { full_path: "{{ certificate_directory + '/' + fullchain_filename }}"}
+    - { full_path: "{{ certificate_directory + '/' + csr_filename }}" }
+    - { full_path: "{{ certificate_directory + '/' + crt_filename }}" }
+    - { full_path: "{{ certificate_directory + '/' + key_filename }}" }
+    - { full_path: "{{ certificate_directory + '/' + intermediate_filename }}" }
+    - { full_path: "{{ certificate_directory + '/' + fullchain_filename }}" }
   when: cleanup_all
 
 - name: Remove certificate directory if 'cleanup_all' and didnt previously exist

@@ -1,5 +1,6 @@
 ---
 certificate_common_name: "{{ inventory_hostname }}"
+certificate_wildcard_common_name: "*.{{ inventory_hostname }}"
 certificate_remaining_days: 10
 certificate_sans: []
 certificate_directory: "/etc/ssl/{{ certificate_common_name }}"
@@ -23,8 +24,7 @@ letsencrypt_key_size: 2048
 letsencrypt_key_directory: /etc/ssl/lets_encrypt
 letsencrypt_key_filename: letsencrypt_account.key
 letsencrypt_production: no
-letsencrypt_acme_directory: "{{ 'https://acme-v01.api.letsencrypt.org/directory' if letsencrypt_production else 'https://acme-staging.api.letsencrypt.org/directory' }}"
-
+letsencrypt_acme_directory: "{{ 'https://acme-v02.api.letsencrypt.org/directory' if letsencrypt_production else 'https://acme-staging-v02.api.letsencrypt.org/directory' }}"
 
 include_intermediate: no
 intermediate_filename: "{{ certificate_common_name }}.intermediate.crt"
