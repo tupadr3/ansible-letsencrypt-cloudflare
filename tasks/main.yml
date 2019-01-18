@@ -90,6 +90,7 @@
     account_email: "{{ letsencrypt_email }}"
     remaining_days: "{{ certificate_remaining_days }}"
     acme_version: 2
+    terms_agreed: yes
   register: letsencrypt_challenge
   tags:
     - web-api
