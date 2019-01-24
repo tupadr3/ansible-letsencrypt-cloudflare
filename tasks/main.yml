@@ -43,7 +43,7 @@
 
 - name: generate the CSR
   command: |
-    openssl req -new -sha256 -subj "/CN={{ certificate_wildcard_common_name }}"
+    openssl req -new -sha256 -subj "/CN={{ certificate_common_name }}"
     -config "{{ certificate_directory }}/openssl-request.conf"
     -key "{{ certificate_directory + '/' + key_filename }}"
     -out "{{ certificate_directory + '/' + csr_filename }}"
@@ -57,10 +57,10 @@
     group: "{{ certificate_files_group }}"
     mode: "{{ certificate_files_mode }}"
 
-- name: delete the OpenSSL configuration file for the CSR
-  file:
-    path: "{{ certificate_directory }}/openssl-request.conf"
-    state: absent
+#- name: delete the OpenSSL configuration file for the CSR
+#  file:
+#    path: "{{ certificate_directory }}/openssl-request.conf"
+#    state: absent
 
 - name: "create the {{ letsencrypt_key_directory }} directory"
   file:
@@ -102,7 +102,6 @@
     type: TXT
     value: '"{{ item.value[''dns-01''][''resource_value''] }}"'
     state: present
-    solo: true
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_api_key }}"
   with_dict: "{{ letsencrypt_challenge['challenge_data'] | default({}) }}"

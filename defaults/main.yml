@@ -1,6 +1,5 @@
 ---
 certificate_common_name: "{{ inventory_hostname }}"
-certificate_wildcard_common_name: "*.{{ inventory_hostname }}"
 certificate_remaining_days: 10
 certificate_sans: []
 certificate_directory: "/etc/ssl/{{ certificate_common_name }}"

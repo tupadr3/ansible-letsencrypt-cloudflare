@@ -10,4 +10,7 @@ keyUsage = digitalSignature, keyEncipherment
 subjectAltName = @alt_names
 
 [alt_names]
-DNS = {{ certificate_wildcard_common_name }}
+DNS.1={{ certificate_common_name }}
+{% for cn in certificate_sans %}
+DNS.{{loop.index}}={{ cn }}
+{% endfor %}
